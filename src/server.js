@@ -18,10 +18,19 @@ const handleListen = () => console.log("Listening on ws://localhost:3000");
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-function handleConnection(socket) {
-  console.log(socket);
-}
+const sockets = [];
 
-wss.on("connection", handleConnection);
+wss.on("connection", (socket) => {
+  sockets.push(socket);
+  console.log("Hello Client ✔");
+  socket.on("close", onSocketClose);
+  socket.on("message", (msg) => {
+    sockets.forEach((aSocket) => aSocket.send(msg.toString("utf-8")));
+  });
+});
+
+function onSocketClose() {
+  console.log("Disconnect from the Browser ❌");
+}
 
 server.listen(3000, handleListen);
