@@ -20,9 +20,10 @@ const httpServer = http.createServer(app);
 const wsServer = new Server(httpServer);
 
 wsServer.on("connection", (socket) => {
-  socket.on("enter_room", (roomName, done) => {
-    console.log(roomName);
-    setTimeout(() => done("hello from backend"), 1000);
+  socket.onAny((event) => console.log(`event: ${event}`));
+  socket.on("enter_room", (roomName, done) => {  
+    socket.join(roomName);
+    done();
   });
 });
 
