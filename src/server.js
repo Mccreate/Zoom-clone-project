@@ -22,10 +22,17 @@ const sockets = [];
 
 wss.on("connection", (socket) => {
   sockets.push(socket);
+  socket["nickname"] = "Anonymous";
   console.log("Hello Client ✔");
   socket.on("close", onSocketClose);
   socket.on("message", (msg) => {
-    sockets.forEach((aSocket) => aSocket.send(msg.toString("utf-8")));
+    const message = JSON.parse(msg);
+    switch (message.type){
+        case "new_msg":
+            sockets.forEach((aSocket) => aSocket.send(`${socket.nickname} : ${message.payload}`));
+        case "nickname":
+            socket["nickname"] = message.payload;
+    }
   });
 });
 
