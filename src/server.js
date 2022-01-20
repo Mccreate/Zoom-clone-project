@@ -2,6 +2,7 @@ import express from "express";
 import http from "http";
 import path from "path";
 import { Server } from "socket.io";
+import { instrument } from "@socket.io/admin-ui";
 // import { WebSocketServer } from "ws";
 
 const app = express();
@@ -17,7 +18,16 @@ const handleListen = () => console.log("Listening on ws://localhost:3000");
 // app.listen(3000, handleListen);
 
 const httpServer = http.createServer(app);
-const wsServer = new Server(httpServer);
+const wsServer = new Server(httpServer, {
+  cors: {
+    origin: ["https://admin.socket.io"],
+    credentials: true,
+  },
+});
+
+instrument(wsServer, {
+  auth: false,
+});
 
 function publicRooms() {
   const {
@@ -34,7 +44,7 @@ function publicRooms() {
   return publicRooms;
 }
 
-function countRoom(roomName){
+function countRoom(roomName) {
   return wsServer.sockets.adapter.rooms.get(roomName)?.size;
 }
 
@@ -57,14 +67,14 @@ wsServer.on("connection", (socket) => {
   });
   socket.on("disconnect", () => {
     wsServer.sockets.emit("room_change", publicRooms());
-  })
+  });
   socket.on("new_msg", (msg, room, done) => {
     socket.to(room).emit("new_msg", `${socket.nickname}: ${msg}`);
     done();
   });
-  socket.on("nickname", nickname => {
+  socket.on("nickname", (nickname) => {
     socket["nickname"] = nickname;
-  })
+  });
 });
 
 /*
